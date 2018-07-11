@@ -1,3 +1,66 @@
 #CBPOT
 #Introdução ao software estatístico R e análise de predição no 
 #contexto organizacional e do trabalho
+
+#banco
+exeCBPOT<-read.csv(file.choose(),sep=";")
+exeCBPOT<-exeCBPOT[,-c(8:13)]
+write.csv2(exeCBPOT,"banco_cbpot.csv",row.names = F)
+str(exeCBPOT)
+summary(exeCBPOT)
+
+install.packages("PerformanceAnalytics")
+install.packages("psych")
+install.packages("lavaan")
+install.packages("qgraph")
+install.packages("bnlearn")
+
+library(PerformanceAnalytics)
+library(psych)
+library(lavaan)
+library(qgraph)
+library(bnlearn)
+
+chart.Correlation(exeCBPOT, histogram=TRUE, pch=19)
+# correlações - primeira aproximação
+cor.plot(cor_auto(exeCBPOT),numbers = T)
+# regressão linear múltipla - predição linear
+fit<-lm(Engaj ~ RelInt + Deman +	ApCol +	ApSup +	Contr +	Papel +	Mudan, data = exeCBPOT)
+summary(fit)
+
+# path analysis - análise de trajetórias 
+fit_model<-'Engaj ~ RelInt + Deman +	ApCol +	ApSup +	Contr +	Papel +	Mudan'
+fit_path<-sem(fit_model,data = exeCBPOT)
+summary(fit_path,standardized=T,fit=T,rsquare=T)
+
+fit_model2<-'Engaj ~ RelInt + Deman +	ApCol +	ApSup +	Contr +	Papel +	Mudan
+             ApCol ~ RelInt + Deman +	Contr +	Papel +	Mudan
+             ApSup ~ RelInt + Deman +	Contr +	Papel +	Mudan'
+fit_path2<-sem(fit_model2,data = exeCBPOT)
+summary(fit_path2,standardized=T,fit=T,rsquare=T)
+
+
+fit_model3<-'Engaj ~ RelInt + Deman +	ApCol +	ApSup +	Contr +	Papel +	Mudan
+             Deman ~ RelInt +	ApCol +	ApSup +	Papel +	Mudan
+             Contr ~ RelInt +	ApCol +	ApSup +	Papel +	Mudan'
+fit_path3<-sem(fit_model3,data = exeCBPOT)
+summary(fit_path3,standardized=T,fit=T,rsquare=T)
+
+anova(fit_path2,fit_path3)
+
+
+qgraph(cor_auto(exeCBPOT),layout="spring")
+exe_g<-qgraph(cor_auto(exeCBPOT),layout="spring",graph="glasso",sampleSize=nrow(exeCBPOT))
+centralityPlot(exe_g,include=c("Closeness","ExpectedInfluence"))
+View(getWmat(exe_g))
+exe_cov<-cov(exeCBPOT,use = "pairwise.complete.obs")
+fit_graph<-ggmFit(getWmat(exe_g),exe_cov,nrow(exeCBPOT),refit=TRUE,ebicTuning = 0.25)
+fit_graph
+
+
+library(bnlearn)
+exeCBPOT_sm<-na.omit(exeCBPOT)
+res_exe<-iamb(exeCBPOT_sm)
+qgraph(res_exe)
+
+qgraph(model2)
