@@ -48,19 +48,19 @@ summary(fit_path3,standardized=T,fit=T,rsquare=T)
 
 anova(fit_path2,fit_path3)
 
-
-qgraph(cor_auto(exeCBPOT),layout="spring")
-exe_g<-qgraph(cor_auto(exeCBPOT),layout="spring",graph="glasso",sampleSize=nrow(exeCBPOT))
+# Redes de associações 
+qgraph(cor_auto(exeCBPOT),labels=colnames(exeCBPOT))
+qgraph(cor_auto(exeCBPOT),layout="spring",labels=colnames(exeCBPOT))
+exe_g<-qgraph(cor_auto(exeCBPOT),layout="spring",graph="glasso",sampleSize=nrow(exeCBPOT),labels=colnames(exeCBPOT))
 centralityPlot(exe_g,include=c("Closeness","ExpectedInfluence"))
 View(getWmat(exe_g))
+cor.plot(getWmat(exe_g),numbers = T)
 exe_cov<-cov(exeCBPOT,use = "pairwise.complete.obs")
 fit_graph<-ggmFit(getWmat(exe_g),exe_cov,nrow(exeCBPOT),refit=TRUE,ebicTuning = 0.25)
 fit_graph
 
 
-library(bnlearn)
+# Redes bayesianas
 exeCBPOT_sm<-na.omit(exeCBPOT)
 res_exe<-iamb(exeCBPOT_sm)
 qgraph(res_exe)
-
-qgraph(model2)
